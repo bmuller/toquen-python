@@ -5,7 +5,7 @@ from toquen import version
 setup(
     name="toquen",
     version=version,
-    description="Toquen: Joins Capistrano + AWS + Chef-Solo into small devops ease",
+    description="Python lib for Toquen: Joins Capistrano + AWS + Chef-Solo into small devops ease",
     author="Brian Muller",
     author_email="bamuller@gmail.com",
     license="MIT",
