@@ -15,9 +15,9 @@ Assuming you want to be able to set up roles in your [Fabric](http://docs.fabfil
 
 ```python
 from fabric.api import env, roles, run
-from toquen.client import FabricFriendlyClient
+from toquen import client
 
-aws = FabricFriendlyClient()
+aws = client.FabricFriendlyClient()
 env.roledefs = {
     'staging': aws.ips_with_roles(['web'])
 }
