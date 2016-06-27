@@ -11,14 +11,15 @@ class AWSClient(object):
             client = boto3.client('ec2', aws_access_key_id=key_id, aws_secret_access_key=secret_key, region_name=region)
             self.clients.append(client)
 
-    def server_with_role(self, role):
-        return self.servers_with_roles([role])
+    def server_with_role(self, role, env=None):
+        return self.servers_with_roles([role], env)
 
-    def servers_with_roles(self, roles):
+    def servers_with_roles(self, roles, env=None):
         result = []
         roles = set(roles)
         for instance in self.server_details():
-            if roles <= set(instance['roles']):
+            envmatches = (env is None) or (instance['environment'] == env)
+            if roles <= set(instance['roles']) and envmatches:
                 result.append(instance)
         return result
 
@@ -43,12 +44,13 @@ class AWSClient(object):
             'type': details['InstanceType'],
             'external_dns': details['PublicDnsName'],
             'internal_dns': details['PrivateDnsName'],
-            'security_groups': [sg['GroupId'] for sg in details['SecurityGroups']]
+            'security_groups': [sg['GroupId'] for sg in details['SecurityGroups']],
+            'environment': tags.get('Environment', None)
         }
 
 
 class FabricFriendlyClient(AWSClient):
-    def ips_with_roles(self, roles):
+    def ips_with_roles(self, roles, env=None):
         def func():
-            return [s['external_ip'] for s in self.servers_with_roles(roles)]
+            return [s['external_ip'] for s in self.servers_with_roles(roles, env)]
         return func
