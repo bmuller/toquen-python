@@ -14,12 +14,20 @@ class AWSClient(object):
     def server_with_role(self, role, env=None):
         return self.servers_with_roles([role], env)
 
-    def servers_with_roles(self, roles, env=None):
+    def servers_with_roles(self, roles, env=None, match_all=False):
+        """
+        Get servers with the given roles.  If env is given, then the environment must match as well.
+        If match_all is True, then only return servers who have all of the given roles.  Otherwise,
+        return servers that have one or more of the given roles.
+        """
         result = []
         roles = set(roles)
         for instance in self.server_details():
+            instroles = set(instance['roles'])
             envmatches = (env is None) or (instance['environment'] == env)
-            if roles <= set(instance['roles']) and envmatches:
+            if envmatches and match_all and roles <= instroles:
+                result.append(instance)
+            elif envmatches and not match_all and len(roles & instroles) > 0:
                 result.append(instance)
         return result
 
@@ -50,7 +58,13 @@ class AWSClient(object):
 
 
 class FabricFriendlyClient(AWSClient):
-    def ips_with_roles(self, roles, env=None):
+    def ips_with_roles(self, roles, env=None, match_all=False):
+        """
+        Returns a function that, when called, gets servers with the given roles.
+        If env is given, then the environment must match as well.  If match_all is True,
+        then only return servers who have all of the given roles.  Otherwise, return
+        servers that have one or more of the given roles.
+        """
         def func():
-            return [s['external_ip'] for s in self.servers_with_roles(roles, env)]
+            return [s['external_ip'] for s in self.servers_with_roles(roles, env, match_all)]
         return func
