@@ -2,9 +2,11 @@ import boto3
 
 
 class AWSClient(object):
-    def __init__(self, key_id=None, secret_key=None, regions=None):
+    def __init__(self, key_id=None, secret_key=None, regions=None, cache=True):
         self.clients = []
         regions = regions or []
+        self.should_cache = cache
+        self.cache = None
         if len(regions) == 0:
             self.clients = [boto3.client('ec2', aws_access_key_id=key_id, aws_secret_access_key=secret_key)]
         for region in regions:
@@ -33,11 +35,15 @@ class AWSClient(object):
 
     def server_details(self):
         filters = [{'Name': 'instance-state-name', 'Values': ['running']}]
+        if self.cache is not None:
+            return self.cache
         results = []
         for client in self.clients:
             for reservation in client.describe_instances(Filters=filters)['Reservations']:
                 for instance in reservation['Instances']:
                     results.append(self._parse_instance(instance))
+        if self.should_cache:
+            self.cache = results
         return results
 
     def _parse_instance(self, details):

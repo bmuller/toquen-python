@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 from setuptools import setup, find_packages
-from toquen import version
+import toquen
 
 setup(
     name="toquen",
-    version=version,
+    version=toquen.__version__,
     description="Python lib for Toquen: Joins Capistrano + AWS + Chef-Solo into small devops ease",
     author="Brian Muller",
     author_email="bamuller@gmail.com",
